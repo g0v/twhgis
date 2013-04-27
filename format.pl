@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use 5.12.1;
-use Text::CSV_XS;
 use File::Path qw(mkpath);
 use JSON qw(decode_json);
 use File::chdir;
