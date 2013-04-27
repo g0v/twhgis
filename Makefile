@@ -18,3 +18,6 @@ TPQ-2010.json: TPQ-2010-changes.csv
 build:
 	lsc walk.ls ./*-2010.json
 	rm -rf villages; perl format.pl
+
+push:
+	cd villages && git remote add origin git@github.com:g0v/twhgis.git && git push origin master:latest -f --tags

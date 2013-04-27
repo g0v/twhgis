@@ -10,7 +10,13 @@ var header
     else
         entry = {[header[i], row[i]] for i of row}
         if entry.date
-            entry.date = new Date 1900, 0, -1 .getTime! + entry.date * 1000ms * 3600sec * 24hr
+            
+            entry.date = if entry.date.match \-
+                1 # do use it yet
+            else
+                new Date 1900, 0, -1 .getTime! + entry.date * 1000ms * 3600sec * 24hr
+        else
+            entry.date ||= changes[*-1].date
 
         entry.action = match entry.action
         | \刪 => \D
@@ -38,9 +44,8 @@ var header
             entry.others = others?split /及|、/
         | \U
             entry.village = entry.new
-            entry.others = entry.old
+            entry.original = entry.old
 
-        entry.date ||= changes[*-1].date
         if entry.vid.substr(0,1) is \6
             [_, tid, cid, vid]? = entry.vid.match /^(\d\d)0(\d\d\d)0-(\d\d\d)$/
             console.error entry.vid unless tid
@@ -48,7 +53,8 @@ var header
             entry.vid = "#{tid}000#{cid}-#{vid}"
         else
             entry.vid.=replace /^(\d+)/, '$10'
-        changes.push entry{county, town, vid, action, date, village, others}
+        entry.town -= /\s/g
+        changes.push entry{county, town, vid, action, date, village, original, others}
 .on \end
 #set = require \./test.json #\./raw/tw-2013-03
 console.log JSON.stringify changes , null ,4

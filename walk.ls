@@ -38,14 +38,13 @@ write-tree = (dir) ->
 
 
 village-version = new Date 2013, 3-1, 1 .getTime!
-stop = new Date 2008, 3-1, 22 .getTime!
+stop = new Date 2000, 12-1, 31 .getTime!
 #stop = new Date 2010, 12-1, 26
 by-dates = {}
 for {date}:c in changes when date
     by-dates[date] ?= []
         ..push c
-dates = [+d for d of by-dates].sort!reverse!
-
+dates = [+d for d of by-dates].sort((a,b)-> a - b).reverse!
 
 # Curried functions using -->
 sort-by = (prop, list) --> list.sort (a, b) ->
@@ -71,7 +70,11 @@ populate = (entry) ->
     icid = old3166[entry.county]
     itid = icid + '-' + tid.substr 5, 3
   else
-    [cid, icid, tid, itid] = [[cid, icid, tid, itid] for _, {tid,itid,cid,icid,county,town} of villages when county is entry.county and town is entry.town].0
+    [cid, icid, tid, itid]? = [[cid, icid, tid, itid] for _, {tid,itid,cid,icid,county,town} of villages when county is entry.county and town is entry.town].0
+    unless cid
+        [cid, icid]? = [[cid, icid] for _, {tid,itid,county} of villages when county is entry.county].0
+        tid = entry.id.match /(.*)-/ .1
+        itid = icid + '-' + tid.substr 5, 3
   
   entry <<< {cid, icid, tid, itid, vid, ivid: "#itid-#vid"}
 
@@ -132,8 +135,7 @@ for d in dates when stop <= d <= village-version
         else
             console.log \UPDATE c
             if c.vid is /-/
-                v.name = c.others
-                ...
+                v.name = c.original
             else
                 # town name change, new = village, old = town
                 for _, v of villages when v.town is c.village
