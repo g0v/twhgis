@@ -1,5 +1,3 @@
-# turn http://ethercalc.org/_/g0v-admin-changes/csv into changes.json
-
 # prepare ivid-based csv.  for example, with national population census data:
 # iconv -f big5-2003 -t utf-8 /tmp/U01VI_101Y9M_TW.csv | lsc prepare.ls --villages ./out/villages-2010-12-25.json --column household=fld0101 --column male=fld0301 --column female=fld0401 > census2012-09.csv
 require! <[csv optimist fs]>
