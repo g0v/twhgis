@@ -6,12 +6,24 @@ column = optimist.argv.column
 throw 'must specify columns' unless column
 column = [column] unless Array.isArray column
 
-columns = {}
+columns = do
+    id: \V_ID
+    county: \COUNTY_ID_NM
+    town: \TOWN_ID_NM
+    village: \V_ID_NM
+
+defaults = {[k, v] for k, v of columns}
+
 for c in column
     [k,v] = c.split '='
-    columns[k] = v
-console.error columns
-console.log (['ivid'] ++ [h for h of columns]).join \,
+    columns[k] = v ? k
+
+var by-name-cache
+by-name = (ctv) ->
+    by-name-cache ?:= {[v<[county town name]>.join(\-), v] for _, v of villages}
+    by-name-cache[ ctv.join \- ]
+
+console.log (['ivid'] ++ [h for h of columns when !defaults[h]]).join \,
 var header
 seen = {}
 <- csv!from.stream process.stdin
@@ -20,15 +32,18 @@ seen = {}
         header := row
     else if index > 1
         entry = {[header[i], row[i]] for i of row}
-        unless v = villages[entry.V_ID]
-            console.error \unknown entry.V_ID, entry<[TOWN_ID_NM V_ID_NM]>
-            throw \z
-
-        seen[v.ivid] = true
-        console.log ([v.ivid] ++ [entry[h] for _, h of columns]).join \,
+        id = entry[columns.id]
+        ctv = columns<[county town village]>.map -> entry[it]
+        ctv.0 .= replace /台/, \臺
+        v = if id => villages[id] else by-name ctv
+        if v
+            seen[v.ivid] = true
+            console.log ([v.ivid] ++ [entry[h] for name, h of columns when !defaults[name]]).join \,
+        else
+            console.error ctv.join \,
 .on \end
 
 for id, {ivid}:v of villages when !seen[ivid]
-    console.error \NOTFOUND v<[county town name]>
+    console.error \NOTFOUND v<[ivid county town name]>
 
 #console.log seen
