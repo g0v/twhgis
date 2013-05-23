@@ -5,6 +5,10 @@ To download individual version of administrative division: https://github.com/g0
 
 Discussion: https://hackpad.com/gOc6ibdldTC
 
+# Data Source
+* http://www.dgbas.gov.tw/ct.asp?xItem=951&ctNode=5485 - official list of codes (pdf) and changes (doc)
+* https://ethercalc.org/g0v-admin-changes - data cleanup for revision log from dgbas
+
 # Rebuild
 
 	% npm i
