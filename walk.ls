@@ -123,8 +123,8 @@ for d in dates when stop <= d <= village-version
                 entry.ovname
             orig = populate do
                 id: "#{entry.otid}-#{entry.ovid}"
-                tid: entry.tid
-                cid: entry.tid.substr(0, 5)
+                tid: entry.otid
+                cid: entry.otid.substr(0, 5)
                 county: entry.ocounty
                 town: entry.otown
                 name: name
