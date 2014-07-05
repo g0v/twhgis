@@ -52,7 +52,7 @@ sort-by = (prop, list) --> list.sort (a, b) ->
   | a[prop] < b[prop] => 1
   | otherwise         => 0
 
- 
+
 old3166 = do
   臺北縣: \TPQ
   高雄縣: \KHQ
@@ -63,19 +63,17 @@ old3166 = do
   臺南縣: \TNQ
 tw3166 = require \../twgeojson/vote/3166-2-tw
 populate = (entry) ->
-  
-  vid = entry.id.match /-(.*)$/ .1
-  if entry.cid
+
+  [_, tid, vid] = entry.id.match /(\d+)-(.*)$/
+  cid = tid.substr(0, 5)
+  if entry.county-reorg
     [cid,tid] = entry<[cid tid]>
     icid = old3166[entry.county]
     itid = icid + '-' + tid.substr 5, 3
   else
-    [cid, icid, tid, itid]? = [[cid, icid, tid, itid] for _, {tid,itid,cid,icid,county,town} of villages when county is entry.county and town is entry.town].0
-    unless cid
-        [cid, icid]? = [[cid, icid] for _, {tid,itid,county} of villages when county is entry.county].0
-        tid = entry.id.match /(.*)-/ .1
-        itid = icid + '-' + tid.substr 5, 3
-  
+    [icid]? = [[icid] for _, {icid,county} of villages when county is entry.county].0
+    itid = icid + '-' + tid.substr 5, 3
+
   entry <<< {cid, icid, tid, itid, vid, ivid: "#itid-#vid"}
 
 #write-tree \output
@@ -130,6 +128,7 @@ for d in dates when stop <= d <= village-version
                 county: entry.ocounty
                 town: entry.otown
                 name: name
+                county-reorg: true
             villages[orig.id] = orig
             #console.log \U c.vid, \=> orig.id
         else
