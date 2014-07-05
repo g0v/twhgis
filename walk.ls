@@ -70,6 +70,7 @@ populate = (entry) ->
     [cid,tid] = entry<[cid tid]>
     icid = old3166[entry.county]
     itid = icid + '-' + tid.substr 5, 3
+    delete entry.county-reorg
   else
     [icid]? = [[icid] for _, {icid,county} of villages when county is entry.county].0
     itid = icid + '-' + tid.substr 5, 3
@@ -82,7 +83,7 @@ for d in dates when stop <= d <= village-version
   console.log \=== d, ymd
   fs.writeFileSync "out/villages-#ymd.json", JSON.stringify villages
   for c in by-dates[d] |> sort-by 'action'
-    v = villages[c.vid]
+    v-entry = villages[c.vid]
     if c.others
         others = c.others?map ->
             town = c.town
@@ -104,7 +105,7 @@ for d in dates when stop <= d <= village-version
 
         console.log \added villages[c.vid]
     | \C
-        unless v
+        unless v-entry
             console.log \ERR c<[county town village]>, \NOTFOUND
             continue
         console.log \remove c.vid, c.village, if others => [\mergeinto others.map (.id)] else null
@@ -117,7 +118,7 @@ for d in dates when stop <= d <= village-version
             name = if current.name isnt entry.vname
                 entry.ovname -= /？$/
                 res = current.name - /.$/ + entry.ovname.substr(-1, 1)
-                console.log \+++ v.name, entry.vname, entry.ovname, \==== res
+                console.log \+++ v-entry.name, entry.vname, entry.ovname, \==== res
                 res
             else
                 entry.ovname
@@ -132,10 +133,11 @@ for d in dates when stop <= d <= village-version
             villages[orig.id] = orig
             #console.log \U c.vid, \=> orig.id
         else
-            console.log \UPDATE c
+            console.log \UPDATE c, v-entry
             if c.vid is /-/
-                v.name = c.original
+                v-entry.name = c.original
             else
+                console.log "townchange #{c.town} => #{c.village}"
                 # town name change, new = village, old = town
                 for _, v of villages when v.town is c.village
                     console.log \U v<[town name]>
