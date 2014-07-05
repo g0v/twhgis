@@ -26,6 +26,8 @@ for my $file (<out/*.json>) {
     {
         local $CWD = 'villages';
         my $dateopt = $date ? "--date ${date}T00:00:00" : '';
+        local $ENV{GIT_AUTHOR_DATE} = $date ? "${date}T00:00:00" : '';
+        local $ENV{GIT_COMMITTER_DATE} = $date ? "${date}T00:00:00" : '';
         system("git add villages.csv; git commit $dateopt -m 'changes for @{[$date || '']}'");
         if ($date) {
             system("git tag $date");
