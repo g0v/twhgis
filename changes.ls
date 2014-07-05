@@ -10,7 +10,7 @@ var header
     else
         entry = {[header[i], row[i]] for i of row}
         if entry.date
-            
+
             entry.date = if entry.date.match \-
                 1 # do use it yet
             else
@@ -37,7 +37,7 @@ var header
             if entry.old is /\S/
                 console.log entry
                 throw \D
-            unless [_, village, others]? = entry.new.match /(\S+)\s*(?:[（(]由(\S+)分割[）)])?/
+            unless [_, village, others]? = entry.new.match /(\S+)\s*(?:[（(]由原?(\S+)分割[）)])?/
                 console.log entry
                 throw \D
             entry.village = village

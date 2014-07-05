@@ -3,7 +3,7 @@ changes = require \./changes.json
 
 var header
 villages = {}
-<- csv!from.stream fs.createReadStream \../twgeojson/districts.csv
+<- csv!from.stream fs.createReadStream \villages-base.csv
 .on \record (row,index) ->
     if index is 0
         header := row
@@ -44,7 +44,7 @@ by-dates = {}
 for {date}:c in changes when date
     by-dates[date] ?= []
         ..push c
-dates = [+d for d of by-dates].sort((a,b)-> a - b).reverse!
+dates = [+d for d of by-dates].sort (a,b)-> a - b
 
 # Curried functions using -->
 sort-by = (prop, list) --> list.sort (a, b) ->
@@ -53,7 +53,30 @@ sort-by = (prop, list) --> list.sort (a, b) ->
   | otherwise         => 0
 
 
-old3166 = do
+tw3166 = do
+  彰化縣: \CHA
+  嘉義市: \CYI
+  嘉義縣: \CYQ
+  新竹縣: \HSQ
+  新竹市: \HSZ
+  花蓮縣: \HUA
+  宜蘭縣: \ILA
+  金門縣: \JME
+  基隆市: \KEE
+  高雄市: \KHH
+  連江縣: \LJF
+  苗栗縣: \MIA
+  南投縣: \NAN
+  澎湖縣: \PEN
+  屏東縣: \PIF
+  桃園縣: \TAO
+  臺南市: \TNN
+  臺北市: \TPE
+  新北市: \TPQ
+  臺東縣: \TTT
+  臺中市: \TXG
+  雲林縣: \YUN
+tw3166-old = do
   臺北縣: \TPQ
   高雄縣: \KHQ
   高雄市: \KHH
@@ -61,14 +84,20 @@ old3166 = do
   臺中縣: \TXQ
   臺南市: \TNN
   臺南縣: \TNQ
-tw3166 = require \../twgeojson/vote/3166-2-tw
-populate = (entry) ->
+tw3166-reorg = do
+  臺北縣: \新北市
+  高雄縣: \高雄市
+  臺中縣: \臺中市
+  臺南縣: \臺南市
 
+
+populate = (entry) ->
   [_, tid, vid] = entry.id.match /(\d+)-(.*)$/
   cid = tid.substr(0, 5)
   if entry.county-reorg
     [cid,tid] = entry<[cid tid]>
-    icid = old3166[entry.county]
+    county = tw3166-reorg[entry.county] ? entry.county
+    icid = tw3166[county]
     itid = icid + '-' + tid.substr 5, 3
     delete entry.county-reorg
   else
@@ -77,11 +106,11 @@ populate = (entry) ->
 
   entry <<< {cid, icid, tid, itid, vid, ivid: "#itid-#vid"}
 
+fs.writeFileSync "out/villages-00earlier.json", JSON.stringify villages
 #write-tree \output
 for d in dates when stop <= d <= village-version
   ymd = moment d .format 'YYYY-MM-DD'
   console.log \=== d, ymd
-  fs.writeFileSync "out/villages-#ymd.json", JSON.stringify villages
   for c in by-dates[d] |> sort-by 'action'
     v-entry = villages[c.vid]
     if c.others
@@ -95,8 +124,8 @@ for d in dates when stop <= d <= village-version
             matched
         .filter -> it
     match c.action
-    | \D
-        console.log \add c<[vid county town village]>, if others => [\mergeinto others.map (.id)] else null
+    | \C
+        console.log \add c<[vid county town village]>, if others => [\splitfrom others.map (.id)] else null
         villages[c.vid] = populate do
             id: c.vid
             county: c.county
@@ -104,43 +133,36 @@ for d in dates when stop <= d <= village-version
             name: c.village
 
         console.log \added villages[c.vid]
-    | \C
+    | \D
         unless v-entry
             console.log \ERR c<[county town village]>, \NOTFOUND
             continue
         console.log \remove c.vid, c.village, if others => [\mergeinto others.map (.id)] else null
         delete villages[c.vid]
     | \U
-        if entry = c.entry
-            current = delete villages[c.vid]
+        if entry = c.entry # county reorg
+            current = delete villages[ entry<[otid ovid]>.join '-']
             unless current
-                console.log \ERR c.vid
-            name = if current.name isnt entry.vname
-                entry.ovname -= /？$/
-                res = current.name - /.$/ + entry.ovname.substr(-1, 1)
-                console.log \+++ v-entry.name, entry.vname, entry.ovname, \==== res
-                res
-            else
-                entry.ovname
-            orig = populate do
-                id: "#{entry.otid}-#{entry.ovid}"
-                tid: entry.otid
-                cid: entry.otid.substr(0, 5)
-                county: entry.ocounty
-                town: entry.otown
+                console.log \ERR c, entry.ovid
+            name = entry.vname
+            next-entry = populate do
+                id: "#{entry.tid}-#{entry.vid}"
+                tid: entry.tid
+                cid: entry.tid.substr(0, 5)
+                county: c.county
+                town: c.town
                 name: name
                 county-reorg: true
-            villages[orig.id] = orig
+            villages[next-entry.id] = next-entry
             #console.log \U c.vid, \=> orig.id
         else
             console.log \UPDATE c, v-entry
             if c.vid is /-/
-                v-entry.name = c.original
+                v-entry.name = c.village
             else
                 console.log "townchange #{c.town} => #{c.village}"
                 # town name change, new = village, old = town
-                for _, v of villages when v.town is c.village
+                for _, v of villages when v.town is c.town
                     console.log \U v<[town name]>
-                    v.town = c.town
-
-fs.writeFileSync "out/villages-00earlier.json", JSON.stringify villages
+                    v.town = c.village
+  fs.writeFileSync "out/villages-#ymd.json", JSON.stringify villages
