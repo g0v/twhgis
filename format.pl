@@ -13,8 +13,16 @@ for my $file (<out/*.json>) {
     warn $file;
     open my $fh, '<', $file or die;
     my ($date) = $file =~ m/(\d\d\d\d-\d\d-\d\d)/;
+    next unless $date;
     local $/;
     my $villages = decode_json <$fh>;
+    {
+      local $CWD = 'villages';
+      if (`git tag -l $date`) {
+          die "$date exists and modified"  if `git status -s`;
+          system("git checkout -q $date");
+      }
+    }
     open my $out, '>:encoding(utf-8)', "villages/villages.csv" or die;
     my $columns = [qw(ivid id name town county vid icid itid)];
     print $out join(',', @$columns)."\n";
@@ -25,6 +33,11 @@ for my $file (<out/*.json>) {
 
     {
         local $CWD = 'villages';
+        if (`git tag -l $date`) {
+            die "$date exists and modified"  if `git status -s`;
+            next;
+        }
+
         my $dateopt = $date ? "--date ${date}T00:00:00" : '';
         local $ENV{GIT_AUTHOR_DATE} = $date ? "${date}T00:00:00" : '';
         local $ENV{GIT_COMMITTER_DATE} = $date ? "${date}T00:00:00" : '';

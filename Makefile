@@ -15,8 +15,11 @@ TXG-2010.json: TXG-2010-changes.csv
 TPQ-2010.json: TPQ-2010-changes.csv
 	lsc tchanges.ls --date='2010-12-25' $< > $@
 
+TAO-2014.json: raw/TAO-2014-changes.csv
+	lsc tchanges.ls --date='2014-12-25' $< > $@
+
 build:
-	lsc walk.ls ./*-2010.json
+	lsc walk.ls ./*-2010.json ./*-2014.json
 	rm -rf villages; perl format.pl
 
 push:

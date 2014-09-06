@@ -37,7 +37,7 @@ write-tree = (dir) ->
 
 
 
-village-version = new Date 2014, 7-1, 1 .getTime!
+village-version = new Date 2015, 1-1, 1 .getTime!
 stop = new Date 2000, 12-1, 31 .getTime!
 #stop = new Date 2010, 12-1, 26
 by-dates = {}
@@ -69,7 +69,7 @@ tw3166 = do
   南投縣: \NAN
   澎湖縣: \PEN
   屏東縣: \PIF
-  桃園縣: \TAO
+  桃園市: \TAO
   臺南市: \TNN
   臺北市: \TPE
   新北市: \TPQ
@@ -89,6 +89,7 @@ tw3166-reorg = do
   高雄縣: \高雄市
   臺中縣: \臺中市
   臺南縣: \臺南市
+  桃園縣: \桃園市
 
 
 populate = (entry) ->
